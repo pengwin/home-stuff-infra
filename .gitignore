@@ -10,8 +10,6 @@ tsconfig.tsbuildinfo
 !jest.config.js
 !setup.js
 
-!lambdas/index.js
-
 local-stack/
 outputs.json
 .artifacts/
