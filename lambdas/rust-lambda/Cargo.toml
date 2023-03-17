@@ -1,0 +1,16 @@
+[workspace]
+
+members = [
+    "src/core/service_core",
+    "src/core/aws_config_core",
+    "src/core/config_core",
+    "src/core/lambda_core",
+    "src/core/dynamo_persistence_core",
+    "src/services/auth_service",
+    "src/lambdas/auth_lambda",
+    "src/clients/auth_service_client",
+     "src/testing/authload"
+    #"rust_lambda",
+    #"lambda_client",
+    #"lambda_e2e"
+]
