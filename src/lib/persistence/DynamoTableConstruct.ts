@@ -4,6 +4,7 @@ import { DynamoTableAttributes, DynamoTable } from './DynamoDbTypes';
 
 interface DynamoTableConstructOptions<T extends DynamoTableAttributes> {
   table: DynamoTable<T>;
+  env: 'local' | 'prod-eu';
 }
 
 export class DynamoTableConstruct<T extends DynamoTableAttributes> extends Construct {
@@ -24,15 +25,19 @@ export class DynamoTableConstruct<T extends DynamoTableAttributes> extends Const
       });
     }
 
+    const billingMode = options.env === 'local' ? 'PAY_PER_REQUEST' : 'PROVISIONED';
+    const writeCapacity = options.env === 'local' ? undefined : 1;
+    const readCapacity = options.env === 'local' ? undefined : 1;
+
     this.table = new aws.dynamodbTable.DynamodbTable(scope, `${id}-dynamodb-table`, {
       name: options.table.tableName,
-      billingMode: 'PAY_PER_REQUEST', // 'PROVISIONED'
+      billingMode,
 
-      //writeCapacity: 5,
-      //readCapacity: 5,
+      writeCapacity,
+      readCapacity,
       attribute: attributes,
       hashKey,
-      globalSecondaryIndex: options.table.globalSecondaryIndex,
+      globalSecondaryIndex: options.table.globalSecondaryIndex?.map((i) => ({ writeCapacity, readCapacity, ...i })),
       /*globalSecondaryIndex: [
         {
           name: 'UserIdAndTimestampSortIndex',
@@ -49,5 +54,9 @@ export class DynamoTableConstruct<T extends DynamoTableAttributes> extends Const
 
   get tableName() {
     return this.table.name;
+  }
+
+  get tableArn() {
+    return this.table.arn;
   }
 }

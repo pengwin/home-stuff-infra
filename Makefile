@@ -12,3 +12,6 @@ run-local-stack:
 	
 deploy-local-stack: lambda-zip
 	cdktf deploy home-stuff-local --auto-approve
+
+deploy-staging: # lambda-zip
+	cdktf deploy home-stuff-staging

@@ -7,4 +7,6 @@ pub enum Env {
     Local,
     // Running locally inside local-stack as lambda
     LocalStack,
+    // Running on eu-central-1
+    ProdEU
 }

@@ -1,7 +1,7 @@
 import * as path from 'path';
 
 import { Construct } from 'constructs';
-import { App, TerraformStack, TerraformOutput } from 'cdktf';
+import { TerraformStack, TerraformOutput } from 'cdktf';
 
 import { LocalStackProvider } from './lib/LocalStackProvider';
 import * as random from '@cdktf/provider-random';
@@ -13,6 +13,7 @@ import { AwsProvider } from '@cdktf/provider-aws/lib/provider';
 type LambdaIdConstructor = (id: string) => string;
 
 const defaultPepper = 'DoctorPepper';
+const defaultSecret = 'Secret';
 
 interface HomeStuffStackOptions {
   env: 'local' | 'prod-eu';
@@ -33,21 +34,29 @@ export class HomeStuffStack extends TerraformStack {
 
     new random.provider.RandomProvider(this, 'random');
 
-    const randomPepper = new random.password.Password(this, `${id}-pepper`, {
-      length: 10
+    const randomPepper = new random.password.Password(this, `${id}-random-pepper`, {
+      length: 128
+    });
+
+    const randomSecret = new random.password.Password(this, `${id}-random-secret`, {
+      length: 128
     });
 
     const pepper = options.env === 'local' ? defaultPepper : randomPepper.result;
 
+    const secret = options.env === 'local' ? defaultSecret : randomSecret.result;
+
     const adminEmail = 'test@test.com';
 
-    const userTable = new DynamoUsersTableConstruct(this, `${id}-user-table`);
+    const userTable = new DynamoUsersTableConstruct(this, `${id}-user-table`, {
+      env: options.env
+    });
 
     const adminItem = new AdminUserDeploymentConstruct(this, `${id}-admin-item`, {
       credTableName: userTable.userCredTableName,
       userTableName: userTable.userTableName,
       adminEmail: 'test@test.com',
-      pepper
+      pepper: pepper
     });
 
     new TerraformOutput(this, 'admin_email', {
@@ -83,9 +92,20 @@ export class HomeStuffStack extends TerraformStack {
           zip: false,
           variables: {
             APP_PEPPER: pepper,
-            APP_SECRET: 'secret',
-            APP_ENV: 'LocalStack'
-          }
+            APP_SECRET: secret,
+            APP_ENV: options.env === 'local' ? 'LocalStack' : 'ProdEU',
+            APP_JWT_EXPIRATION_SEC: '86400'
+          },
+          dynamoTablesToAccess: [
+            {
+              tableName: userTable.userTableName,
+              arn: userTable.userTableArn
+            },
+            {
+              tableName: userTable.userCredTableName,
+              arn: userTable.userCredTableArn
+            }
+          ]
         }
       ]
     };
@@ -99,11 +119,3 @@ export class HomeStuffStack extends TerraformStack {
     }
   }
 }
-
-const app = new App();
-
-new HomeStuffStack(app, 'home-stuff-local', {
-  env: 'local'
-});
-
-app.synth();

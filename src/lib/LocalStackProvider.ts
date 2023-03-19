@@ -10,6 +10,7 @@ export class LocalStackProvider extends AwsProvider {
       s3ForcePathStyle: true,
       secretKey: 'mock_secret_key',
       skipCredentialsValidation: true,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       skipMetadataApiCheck: true as any,
       skipRequestingAccountId: true,
       endpoints: [

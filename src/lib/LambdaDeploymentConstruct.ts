@@ -2,6 +2,11 @@ import { Construct } from 'constructs';
 import { TerraformAsset, AssetType } from 'cdktf';
 import * as aws from '@cdktf/provider-aws';
 
+interface DynamoTableInfo {
+  tableName: string;
+  arn: string;
+}
+
 export interface LambdaDeploymentOptions {
   readonly path: string;
   readonly handler: 'bootstrap' | 'index.handler';
@@ -13,9 +18,10 @@ export interface LambdaDeploymentOptions {
   readonly variables?: {
     [key: string]: string;
   };
+  readonly dynamoTablesToAccess?: DynamoTableInfo[];
 }
 
-const lambdaRolePolicy = {
+const DefaultLambdaRolePolicy = {
   Version: '2012-10-17',
   Statement: [
     {
@@ -45,10 +51,42 @@ export class LambdaDeploymentConstruct extends Construct {
           type: AssetType.FILE // if left empty it infers directory and file
         });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tables: any =
+      options.dynamoTablesToAccess?.map((t) => ({
+        Effect: 'Allow',
+        Action: [
+          'dynamodb:BatchGetItem',
+          'dynamodb:GetItem',
+          'dynamodb:Query',
+          'dynamodb:Scan',
+          'dynamodb:BatchWriteItem',
+          'dynamodb:PutItem',
+          'dynamodb:DeleteItem',
+          'dynamodb:UpdateItem'
+        ],
+        Resource: t.arn
+      })) || [];
+
+    const lambdaRolePolicy = { ...DefaultLambdaRolePolicy };
+    const lambdaInlinePolicy =
+      tables.length > 0
+        ? [
+            {
+              name: `${id}-dynamo-policy`,
+              policy: JSON.stringify({
+                Version: '2012-10-17',
+                Statement: tables
+              })
+            }
+          ]
+        : undefined;
+
     // Create Lambda role
     const role = new aws.iamRole.IamRole(scope, `${id}-lambda-exec`, {
       name: `${id}-role`,
-      assumeRolePolicy: JSON.stringify(lambdaRolePolicy)
+      assumeRolePolicy: JSON.stringify(lambdaRolePolicy),
+      inlinePolicy: lambdaInlinePolicy
     });
 
     // Add execution role for lambda to write to CloudWatch logs
@@ -62,6 +100,7 @@ export class LambdaDeploymentConstruct extends Construct {
       handler: options.handler,
       runtime: options.runtime,
       role: role.arn,
+      timeout: 1,
       environment: {
         variables: options.variables
       }
@@ -93,6 +132,11 @@ export class LambdaDeploymentConstruct extends Construct {
     this.lambdaFunctionUrl = new aws.lambdaFunctionUrl.LambdaFunctionUrl(scope, `${id}-lambda-url`, {
       functionName: lambdaFunc.functionName,
       authorizationType: 'NONE'
+    });
+
+    new aws.cloudwatchLogGroup.CloudwatchLogGroup(scope, `${id}-lambda-cloudwatch-group`, {
+      name: `/aws/lambda/${lambdaFunc.functionName}`,
+      retentionInDays: 30
     });
   }
 
