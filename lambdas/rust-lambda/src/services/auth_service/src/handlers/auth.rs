@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::{
+    debug_handler,
     extract::State,
     routing::{get, post},
     Extension, Json, Router,
@@ -39,6 +40,7 @@ pub type AuthErrorResponse = service_core::auth::AuthErrorResponse;
         (status = 500, body = AuthErrorResponse),
     )
 )]
+#[debug_handler]
 async fn authorize(
     State(state): State<ArcState>,
     Json(payload): Json<AuthRequest>,
@@ -86,6 +88,7 @@ pub struct ProfileResponse {
         ("token" = [])
     )
 )]
+#[debug_handler]
 async fn profile(
     State(state): State<ArcState>,
     claims: Claims,

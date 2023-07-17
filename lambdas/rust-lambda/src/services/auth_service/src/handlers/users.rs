@@ -1,6 +1,7 @@
 use std::{str::FromStr, sync::Arc};
 
 use axum::{
+    debug_handler,
     extract::{Path, State},
     http::StatusCode,
     response::{IntoResponse, Response},
@@ -61,6 +62,7 @@ pub struct GetAllResponse {
         ("token" = [])
     )
 )]
+#[debug_handler]
 async fn get_all_users(
     _admin: AdminClaims,
     State(state): State<ArcState>,
@@ -105,6 +107,7 @@ pub struct AddUserResponse {
         ("token" = [])
     )
 )]
+#[debug_handler]
 pub async fn add_user(
     admin: AdminClaims,
     State(state): State<ArcState>,
@@ -181,6 +184,7 @@ pub fn create_user(
         ("token" = [])
     )
 )]
+#[debug_handler]
 pub async fn get_user(
     _admin: AdminClaims,
     State(state): State<ArcState>,
@@ -212,6 +216,7 @@ pub async fn get_user(
         ("token" = [])
     )
 )]
+#[debug_handler]
 pub async fn delete_user(
     admin: AdminClaims,
     State(state): State<ArcState>,

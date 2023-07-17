@@ -10,6 +10,7 @@ pub struct AuthServiceConfig {
     pub pepper: String,
     pub secret: String,
     pub jwt_expiration_sec: u64,
+    pub allowed_origin: String,
     pub endpoint: Option<String>,
 }
 

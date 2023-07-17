@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use anyhow::Context;
 use auth_service::AuthServiceConfig;
 use auth_service_client::apis::configuration::Configuration;
 use config::{Config, Source, ValueKind};
@@ -23,8 +24,17 @@ impl Default for TestConfig {
 }
 
 impl TestConfig {
-    pub fn to_api_configuration(&self) -> Configuration {
-        let mut cfg = Configuration::default();
+    pub fn to_api_configuration(
+        &self,
+        app: axum::Router,
+        auth_token: Option<String>,
+    ) -> Configuration {
+        let mut cfg = Configuration::new(app);
+        if let Some(token) = auth_token {
+            cfg.oauth_access_token = Some(token);
+        } else {
+            cfg.oauth_access_token = None;
+        }
         cfg.base_path = format!("http://{}", &self.app_endpoint);
         cfg
     }
@@ -39,6 +49,7 @@ impl TestConfig {
             pepper: "pepper".to_owned(),
             secret: "secret".to_owned(),
             endpoint: Some(self.app_endpoint.to_owned()),
+            allowed_origin: "http://localhost:3000".to_owned(),
             jwt_expiration_sec: 5,
         }
     }
@@ -100,11 +111,11 @@ impl Source for DotEnvSource {
 }
 
 #[allow(dead_code)]
-pub fn load() -> TestConfig {
+pub fn load() -> anyhow::Result<TestConfig> {
     let config = Config::builder()
         .add_source(DotEnvSource::new(concat!("/../../../", ".env")))
         .build()
-        .expect("Config loading error");
+        .context("Config loading error")?;
 
     // println!("Config loaded");
 
@@ -120,7 +131,7 @@ pub fn load() -> TestConfig {
 
     let test_config: TestConfig = config
         .try_deserialize()
-        .expect("Config Deserialization Error");
+        .context("Config Deserialization Error")?;
 
-    test_config
+    Ok(test_config)
 }

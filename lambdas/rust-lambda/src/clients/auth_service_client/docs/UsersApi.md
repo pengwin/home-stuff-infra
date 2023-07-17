@@ -4,10 +4,10 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**add_user**](UsersApi.md#add_user) | **PUT** /user | 
-[**delete_user**](UsersApi.md#delete_user) | **DELETE** /user/{user_id} | 
-[**get_all_users**](UsersApi.md#get_all_users) | **GET** /users | 
-[**get_user**](UsersApi.md#get_user) | **GET** /user/{user_id} | 
+[**add_user**](UsersApi.md#add_user) | **Put** /user | 
+[**delete_user**](UsersApi.md#delete_user) | **Delete** /user/{user_id} | 
+[**get_all_users**](UsersApi.md#get_all_users) | **Get** /users | 
+[**get_user**](UsersApi.md#get_user) | **Get** /user/{user_id} | 
 
 
 

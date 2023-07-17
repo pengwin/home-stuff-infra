@@ -4,8 +4,8 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**authorize**](AuthApi.md#authorize) | **POST** /authorize | 
-[**profile**](AuthApi.md#profile) | **GET** /profile | 
+[**authorize**](AuthApi.md#authorize) | **Post** /authorize | 
+[**profile**](AuthApi.md#profile) | **Get** /profile | 
 
 
 

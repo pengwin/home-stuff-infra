@@ -1,32 +1,38 @@
 mod config;
 pub mod setup;
 
+use anyhow::Context;
 use auth_service_client::{
-    apis::{auth_api, configuration::Configuration, healthcheck_api, users_api},
-    models::{AddUserRequest, AuthRequest},
+    apis::client::APIClient,
+    models::{AddUserRequest, AuthRequest, GetAllResponse},
 };
 use uuid::Uuid;
 
 pub use self::config::load as load_config;
 pub use self::config::TestConfig;
 
-pub async fn healthcheck(configuration: &Configuration) {
-    healthcheck_api::healthcheck(configuration)
+pub async fn healthcheck(client: &APIClient) -> anyhow::Result<()> {
+    client
+        .healthcheck_api()
+        .healthcheck()
         .await
-        .expect("HealthCheckError")
+        .context("Healthcheck error")?;
+    Ok(())
 }
 
-pub async fn authorize(configuration: &Configuration, credentials: (String, String)) -> String {
-    auth_api::authorize(
-        configuration,
-        AuthRequest {
+pub async fn authorize(
+    client: &APIClient,
+    credentials: (String, String),
+) -> anyhow::Result<String> {
+    let token = client
+        .auth_api()
+        .authorize(AuthRequest {
             login: credentials.0,
             password: credentials.1,
-        },
-    )
-    .await
-    .expect("Auth error")
-    .token
+        })
+        .await
+        .context("Auth error")?;
+    Ok(token.token)
 }
 
 pub struct CreatedUser {
@@ -41,34 +47,46 @@ impl CreatedUser {
     }
 }
 
-pub async fn add_user(configuration: &Configuration, is_admin: bool) -> CreatedUser {
+pub async fn add_user(client: &APIClient, is_admin: bool) -> anyhow::Result<CreatedUser> {
     let id = uuid::Uuid::new_v4().to_string();
     let password = uuid::Uuid::new_v4().to_string().replace("-", "");
 
     let username = format!("test-admin-{}", id);
     let email = format!("{}@test.com", username);
 
-    let added_user = users_api::add_user(
-        configuration,
-        AddUserRequest {
+    let added_user = client
+        .users_api()
+        .add_user(AddUserRequest {
             admin: is_admin,
             email: email.clone(),
             password: password.clone(),
             username,
-        },
-    )
-    .await
-    .expect("Add User Error");
+        })
+        .await
+        .context("Add User Error")?;
 
-    CreatedUser {
+    Ok(CreatedUser {
         user_id: added_user.user.user_id,
         email: email.clone(),
         password: password.clone(),
-    }
+    })
 }
 
-pub async fn del_user(configuration: &Configuration, user_id: &Uuid) {
-    users_api::delete_user(configuration, &user_id.to_string())
+pub async fn del_user(client: &APIClient, user_id: &Uuid) -> anyhow::Result<()> {
+    client
+        .users_api()
+        .delete_user(&user_id.to_string())
         .await
-        .expect("Delete User Error");
+        .context("Delete User Error")?;
+    Ok(())
+}
+
+pub async fn get_all_users(client: &APIClient) -> anyhow::Result<GetAllResponse> {
+    let users = client
+        .users_api()
+        .get_all_users()
+        .await
+        .context("Get all Users Error")?;
+
+    Ok(users)
 }

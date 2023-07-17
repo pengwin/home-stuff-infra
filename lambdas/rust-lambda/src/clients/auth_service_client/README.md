@@ -25,13 +25,13 @@ All URIs are relative to *http://localhost*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
-*AuthApi* | [**authorize**](docs/AuthApi.md#authorize) | **POST** /authorize | 
-*AuthApi* | [**profile**](docs/AuthApi.md#profile) | **GET** /profile | 
-*HealthcheckApi* | [**healthcheck**](docs/HealthcheckApi.md#healthcheck) | **GET** /healthcheck | 
-*UsersApi* | [**add_user**](docs/UsersApi.md#add_user) | **PUT** /user | 
-*UsersApi* | [**delete_user**](docs/UsersApi.md#delete_user) | **DELETE** /user/{user_id} | 
-*UsersApi* | [**get_all_users**](docs/UsersApi.md#get_all_users) | **GET** /users | 
-*UsersApi* | [**get_user**](docs/UsersApi.md#get_user) | **GET** /user/{user_id} | 
+*AuthApi* | [**authorize**](docs/AuthApi.md#authorize) | **Post** /authorize | 
+*AuthApi* | [**profile**](docs/AuthApi.md#profile) | **Get** /profile | 
+*HealthcheckApi* | [**healthcheck**](docs/HealthcheckApi.md#healthcheck) | **Get** /healthcheck | 
+*UsersApi* | [**add_user**](docs/UsersApi.md#add_user) | **Put** /user | 
+*UsersApi* | [**delete_user**](docs/UsersApi.md#delete_user) | **Delete** /user/{user_id} | 
+*UsersApi* | [**get_all_users**](docs/UsersApi.md#get_all_users) | **Get** /users | 
+*UsersApi* | [**get_user**](docs/UsersApi.md#get_user) | **Get** /user/{user_id} | 
 
 
 ## Documentation For Models

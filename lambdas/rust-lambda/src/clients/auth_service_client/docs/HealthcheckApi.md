@@ -4,7 +4,7 @@ All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**healthcheck**](HealthcheckApi.md#healthcheck) | **GET** /healthcheck | 
+[**healthcheck**](HealthcheckApi.md#healthcheck) | **Get** /healthcheck | 
 
 
 

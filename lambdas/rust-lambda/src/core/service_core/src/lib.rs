@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod cors;
 pub mod graceful_shutdown;
 pub mod handlers;
 pub mod open_api;

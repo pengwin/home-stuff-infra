@@ -59,12 +59,18 @@ impl From<serde_json::Error> for Error {
 
 mod request;
 
-mod auth_api;
-pub use self::auth_api::{ AuthApi, AuthApiClient };
-mod healthcheck_api;
-pub use self::healthcheck_api::{ HealthcheckApi, HealthcheckApiClient };
-mod users_api;
-pub use self::users_api::{ UsersApi, UsersApiClient };
+{{#apiInfo}}
+{{#apis}}
+mod {{{classFilename}}};
+{{#operations}}
+{{#operation}}
+{{#-last}}
+pub use self::{{{classFilename}}}::{ {{{classname}}}, {{{classname}}}Client };
+{{/-last}}
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}
 
 pub mod configuration;
 pub mod client;

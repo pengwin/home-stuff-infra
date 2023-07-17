@@ -13,7 +13,7 @@ use service_core::service::Service;
 use thiserror::Error;
 
 use service_core::handlers::not_found::handler_404;
-use service_core::{config_core, open_api, tracing};
+use service_core::{config_core, cors, open_api, tracing};
 
 pub use self::config::AuthServiceConfig;
 pub use handlers::api_doc::ApiDoc;
@@ -24,6 +24,8 @@ pub enum CreateRouterError {
     ConfigError(#[from] config_core::ConfigError),
     #[error("PersistenceLayerFactoryError: {0:?}")]
     PersistenceLayerFactoryError(String),
+    #[error("CreateCorsLayerError: {0:?}")]
+    CreateCorsLayerError(#[from] cors::CreateCorsLayerError),
 }
 
 pub struct AuthService<P: PersistenceLayerFactory> {
@@ -42,6 +44,8 @@ impl<P: PersistenceLayerFactory> AuthService<P> {
         app_config: &<Self as Service>::ServiceConfig,
         persistence_layer: Arc<dyn PersistenceLayer>,
     ) -> Result<Router, <Self as Service>::CreateRouterError> {
+        let cors_layer = cors::create_cors_layer(&app_config.allowed_origin)?;
+
         let router: Router = Router::new()
             .merge(open_api::router::<ApiDoc>("http://localhost:3000"))
             .merge(users::users(persistence_layer.clone(), app_config))
@@ -50,6 +54,7 @@ impl<P: PersistenceLayerFactory> AuthService<P> {
             .layer(tracing::trace_layer::create_layer(
                 tracing::tracing::Span::current(),
             ))
+            .layer(cors_layer)
             .merge(healthcheck::healthcheck());
 
         Ok(router)

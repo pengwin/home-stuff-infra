@@ -1,7 +1,10 @@
-.PHONY: auth-lambda-zip auth-service-client openapi-client build diagrams test auth-lambda-inmemory authload benchmark format lint
+.PHONY: auth-lambda-zip openapi-clients auth-service-client auth-service-rs-client auth-service-ts-client openapi-client build diagrams test auth-lambda-inmemory authload benchmark format lint clean
 
 build:
 	cargo build
+
+clean:
+	cargo clean -v
 
 # ZIP
 
@@ -22,16 +25,28 @@ auth-lambda-test-run:
 
 # Clients
 
-openapi-client: auth-service-client
+openapi-clients: auth-service-client
 
-auth-service-client:
+auth-service-client: auth-service-ts-client auth-service-rs-client
+
+auth-service-rs-client:
 	docker compose run --rm -it openapi-generator generate \
     -i /local/src/lambdas/auth_lambda/auth-service.openapi.spec.json \
     -g rust \
+	--library hyper \
+	--template-dir /local/src/clients/rust_templates \
 	-p packageName=auth-service-client \
 	-p packageVersion=0.0.1 \
-	-p library=hyper \
     -o /local/src/clients/auth_service_client
+
+auth-service-ts-client:
+	docker compose run --rm -it openapi-generator generate \
+    -i /local/src/lambdas/auth_lambda/auth-service.openapi.spec.json \
+    -g typescript-fetch \
+	-p packageName=auth-service-client \
+	-p packageVersion=0.0.1 \
+	--additional-properties=supportsES6=true,npmVersion=6.9.0,typescriptThreePlus=true,withInterfaces=true \
+    -o /front/src/api/auth-service-client
 
 # Load
 
@@ -47,7 +62,8 @@ authload-local-stack:
 
 test:
 # --format json
-	cargo test -- -Z unstable-options --report-time --nocapture 
+# -- -Z unstable-options --report-time --nocapture 
+	cargo test 
 
 # Diagrams
 
